@@ -104,3 +104,65 @@ This project is licensed under the [MIT License](LICENSE).
 
 For any issues or support, please reach out to [support@monita.com](mailto:support@monita.com).
 
+
+## Architecture
+
+The Monita monitoring solution is composed of three separate libraries that work in tandem to capture, process, and transmit critical application events. Here's a breakdown of each component:
+
+### 1. Monita SDK (monita-android-sdk)
+- **Role:**  
+  Functions as the core engine that processes, batches, and sends the captured data to the Monita server.
+
+- **Responsibilities:**  
+  - **Core Initialization & Configuration:**  
+    Sets up monitoring configurations (such as filtering rules, vendor settings, and other metadata) and handles overall initialization through its Builder pattern.
+  - **Data Processing:**  
+    Applies filtering, transforms the intercepted event data, and formats it into standardized payloads.
+  - **Batching & Persistence:**  
+    Batches multiple events together and manages local storage (using Room) to ensure reliability in scenarios of network loss.
+  - **Transmission:**  
+    Schedules and dispatches batched data to the Monita server, ensuring efficient use of network resources.
+  - **Centralized Logging:**  
+    Provides logging and debugging tools that aid in monitoring the system's performance and troubleshooting issues.
+
+### 2. Monita Adapter (monita-adapter)
+- **Role:**  
+  Specifically handles the interception of network calls made using OkHttp.
+
+- **Responsibilities:**  
+  - **OkHttp Instrumentation:**  
+    Uses Byte Buddy to instrument OkHttp methods like `newCall`, `execute`, and `enqueue`.
+  - **Network Request Capture:**  
+    Intercepts and processes HTTP requests and responses when using OkHttp.
+  - **Initialization:**  
+    Provides the necessary setup to activate network call monitoring.
+
+- **Key Point:**  
+  This module is only required if your application uses OkHttp for network requests.
+
+### 3. Monita Adapter Library (monita-adapter-library)
+- **Role:**  
+  Serves as the dynamic instrumentation module for vendor SDKs, using Byte Buddy to intercept and capture events at runtime.
+
+- **Responsibilities:**  
+  - **Vendor SDK Instrumentation:**  
+    Contains dedicated Byte Buddy plugins for intercepting calls from various SDKs:
+    - Firebase Analytics
+    - Adobe Analytics
+    - Facebook Events
+    - Google Ads
+  - **Method Interception:**  
+    Uses advice classes to capture specific method calls (e.g., Firebase's `logEvent` or Adobe's `trackAction`).
+  - **Data Forwarding:**  
+    Forwards captured events to the Monita SDK for processing.
+
+- **Key Point:**  
+  Works independently of the networking library used—vendor events are captured by instrumenting those SDKs directly.
+
+Together, these three components form a modular and robust monitoring framework:
+- **Monita SDK** processes and manages the captured data.
+- **Monita Adapter** handles OkHttp network call interception.
+- **Monita Adapter Library** captures vendor SDK events.
+
+This architecture allows for comprehensive monitoring without requiring changes to your existing codebase, whether you're using OkHttp for networking or integrating with various third-party analytics providers.
+
