@@ -37,7 +37,7 @@ internal class MonitaCore(
 ) {
 
     internal companion object {
-        const val SDK_VERSION = "2.0.0"
+        const val SDK_VERSION = "2.0.1"
         const val SOURCE = "android-sdk"
         const val DEPLOYMENT_METHOD = "app"
         const val DEFAULT_COLLECT_ENDPOINT = "https://collect.monita.ai/api/v1"
@@ -369,6 +369,33 @@ internal class MonitaCore(
         }
     }
 
+    // The av envelope value: versionName plus version code joined with "+",
+    // e.g. "1.4.2+387". When only one of the two exists, the name ships alone
+    // and a lone code ships as "+code". Null when the package reports neither
+    // (bare test environments); the field is then omitted from the envelope.
+    internal val appVersion: String? by lazy { detectAppVersion() }
+
+    private fun detectAppVersion(): String? = try {
+        val info = appContext.packageManager.getPackageInfo(appContext.packageName, 0)
+        val name = info.versionName?.takeIf { it.isNotBlank() }
+        val code = (
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                info.longVersionCode
+            } else {
+                @Suppress("DEPRECATION")
+                info.versionCode.toLong()
+            }
+        ).takeIf { it != 0L }?.toString()
+        when {
+            name != null && code != null -> "$name+$code"
+            name != null -> name
+            code != null -> "+$code"
+            else -> null
+        }
+    } catch (t: Throwable) {
+        null
+    }
+
     internal fun buildSharedContext(config: RemoteConfig): LinkedHashMap<String, Any?> {
         val packageName = appContext.packageName
         val screen = screenName
@@ -383,6 +410,7 @@ internal class MonitaCore(
         shared["sid"] = sessions.sessionId()
         shared["s"] = SOURCE
         shared["do"] = packageName
+        appVersion?.let { shared["av"] = it }
         shared["rl"] = "android ${Build.VERSION.RELEASE ?: Build.VERSION.SDK_INT.toString()}"
         shared["env"] = "production"
         shared["et"] = ""

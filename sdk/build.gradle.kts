@@ -54,7 +54,7 @@ dependencies {
 }
 
 group = "ai.monita"
-version = "2.0.0"
+version = "2.0.1"
 
 afterEvaluate {
     publishing {
@@ -63,7 +63,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "ai.monita"
                 artifactId = "monita-android-sdk"
-                version = "2.0.0"
+                version = "2.0.1"
                 pom {
                     name.set("Monita Android SDK")
                     description.set("On-device vendor network call monitoring for Android apps.")

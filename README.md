@@ -2,7 +2,7 @@
 
 On-device vendor network call monitoring for Android apps. The SDK observes your app's outgoing vendor traffic (Firebase, Meta, AppsFlyer, Adjust, and any other vendor you configure), matches it against your remote Monita configuration, and reports events to your Monita workspace with the same schema as the Monita web monitoring script.
 
-Version 2.0.0. Requires minSdk 23 (Android 6.0) and OkHttp 4.x.
+Version 2.0.1. Requires minSdk 23 (Android 6.0) and OkHttp 4.x.
 
 ## Design principles
 
@@ -32,7 +32,7 @@ In your app module:
 
 ```kotlin
 dependencies {
-    implementation("com.github.rnadigital:monita-android-sdk:2.0.0")
+    implementation("com.github.rnadigital:monita-android-sdk:2.0.1")
 }
 ```
 
@@ -122,6 +122,27 @@ All methods are safe from any thread and are no-ops before initialization.
 | `collectEndpoint(url)` | `https://collect.monita.ai/api/v1` | Full collect URL, for customer reverse proxies. |
 | `configEndpoint(url)` | Derived from the token | Full config JSON URL for the property. |
 | `debugLogging(enabled)` | `false` | Verbose logging and unbatched delivery. |
+
+## Wire fields
+
+Every batch carries a shared envelope with these fields; per event fields (time, event name, vendor, method, URL, status, parameters) ride inside the batch.
+
+| Field | Value |
+| --- | --- |
+| `t` | Your property token. |
+| `dm` | Deployment method, always `app`. |
+| `mv` | SDK version, `2.0.1`. |
+| `sv` | Monitoring configuration version. |
+| `u` | `app://<package name>` plus the current screen when set. |
+| `p` | Current screen name, empty until `setScreen` is called. |
+| `vid` / `sid` | SDK generated visitor and session UUIDs. |
+| `s` | Source, always `android-sdk`. |
+| `do` | The app's package name. |
+| `av` | App version plus build, `versionName` joined with the version code by `+`, for example `1.4.2+387`. Omitted when the package reports neither value. |
+| `rl` | Platform and OS version, for example `android 14`. |
+| `env` | `production`. |
+| `cn` | Detected or supplied consent string, null when none. |
+| `cid` | Your customer id when set via `setCustomerId`. |
 
 ## Consent behavior
 

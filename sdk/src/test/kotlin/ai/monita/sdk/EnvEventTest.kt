@@ -102,7 +102,7 @@ class EnvEventTest {
             env.keys.sorted()
         )
         assertTrue(env["os"]!!.jsonPrimitive.content.startsWith("android "))
-        assertEquals("2.0.0", env["sdk_version"]!!.jsonPrimitive.content)
+        assertEquals("2.0.1", env["sdk_version"]!!.jsonPrimitive.content)
         assertEquals(
             ApplicationProvider.getApplicationContext<Context>().packageName,
             env["host"]!!.jsonPrimitive.content

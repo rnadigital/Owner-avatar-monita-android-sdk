@@ -44,7 +44,7 @@ class EndToEndGoldenTest {
     private val collectBodies = java.util.concurrent.LinkedBlockingQueue<String>()
 
     private val sharedKeys =
-        listOf("t", "dm", "mv", "sv", "u", "p", "vid", "sid", "s", "do", "rl", "env", "et", "cn")
+        listOf("t", "dm", "mv", "sv", "u", "p", "vid", "sid", "s", "do", "av", "rl", "env", "et", "cn")
     private val eventKeys = listOf("tm", "e", "vn", "st", "m", "vu", "dt", "np")
 
     @Before
@@ -73,6 +73,7 @@ class EndToEndGoldenTest {
 
         val context = ApplicationProvider.getApplicationContext<Context>()
         declareInternetCapability(context)
+        declareAppVersion(context)
         MonitaCore.testFlushDelayMsOverride = 300
         MonitaCore.testEnvDelayMsOverride = 10 * 60 * 1000L
         Monita.initialize(
@@ -116,6 +117,15 @@ class EndToEndGoldenTest {
           ]
         }
         """.trimIndent()
+    }
+
+    /** Gives the Robolectric test package a known version so av is asserted exactly. */
+    private fun declareAppVersion(context: Context) {
+        val packageManager = context.packageManager
+        val info = packageManager.getPackageInfo(context.packageName, 0)
+        info.versionName = "1.4.2"
+        info.longVersionCode = 387
+        org.robolectric.Shadows.shadowOf(packageManager).installPackage(info)
     }
 
     /** Robolectric's default network omits NET_CAPABILITY_INTERNET; real devices have it. */
@@ -162,7 +172,7 @@ class EndToEndGoldenTest {
         assertEquals((sharedKeys + eventKeys).sorted(), flat.keys.sorted())
         assertEquals(token, flat["t"]!!.jsonPrimitive.content)
         assertEquals("app", flat["dm"]!!.jsonPrimitive.content)
-        assertEquals("2.0.0", flat["mv"]!!.jsonPrimitive.content)
+        assertEquals("2.0.1", flat["mv"]!!.jsonPrimitive.content)
         assertEquals("46", flat["sv"]!!.jsonPrimitive.content)
         val packageName = ApplicationProvider.getApplicationContext<Context>().packageName
         assertEquals("app://$packageName", flat["u"]!!.jsonPrimitive.content)
@@ -171,6 +181,7 @@ class EndToEndGoldenTest {
         assertTrue(flat["sid"]!!.jsonPrimitive.content.isNotEmpty())
         assertEquals("android-sdk", flat["s"]!!.jsonPrimitive.content)
         assertEquals(packageName, flat["do"]!!.jsonPrimitive.content)
+        assertEquals("1.4.2+387", flat["av"]!!.jsonPrimitive.content)
         assertTrue(flat["rl"]!!.jsonPrimitive.content.startsWith("android "))
         assertEquals("production", flat["env"]!!.jsonPrimitive.content)
         assertEquals("", flat["et"]!!.jsonPrimitive.content)
